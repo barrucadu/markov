@@ -1,4 +1,8 @@
 import random
+import pickle
+import sys
+import os
+
 
 class Markov:
     def __init__(self, n, p, seed):
@@ -19,6 +23,21 @@ class Markov:
             prev += (token,)
             if len(prev) > self.n:
                 prev = prev[1:]
+
+    def load(self, filename):
+        with open(os.path.expanduser(filename), "rb") as f:
+            try:
+                n, self.data = pickle.load(f)
+
+                if self.n > n:
+                    print("warning: changing n value to", n)
+                    self.n = n
+            except:
+                print("Loading data file failed!")
+                sys.exit(2)
+
+    def dump(self):
+        return pickle.dumps((self.n, self.data))
 
     def __iter__(self):
         random.seed(self.seed)

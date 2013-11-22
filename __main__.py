@@ -1,18 +1,19 @@
 """Markov Chain.
 
-Pass input to stdin.
-
 Usage:
-  markov <len> [-n <n>] [-p <p>] [-c] [-s <s>]
+  markov dump [-n <n>] [-c]
+  markov <len> [-n <n>] [-p <p>] [-c] [-s <s>] [--load=<file>]
   markov -h | --help
 
 Options:
-  <len>      The length (in tokens) of the output to generate
-  -n <n>     The number of symbols to look at in generation [default: 1]
-  -p <p>     The probability to pick a random token [default: 0.05]
-  -c         Split input per character, rather than per word
-  -s <s>     Random seed [default: system time]
-  -h --help  Show this screen
+  <len>          The length (in tokens) of the output to generate
+  -n <n>         The number of symbols to look at in generation [default: 1]
+  -p <p>         The probability to pick a random token [default: 0.05]
+  -c             Split input per character, rather than per word
+  -s <s>         Random seed [default: system time]
+  --load=<file>  Load parsed data from this file, process stdin if not given
+  dump           Process text on stdin and dump data file to stdout
+  -h --help      Show this screen
 """
 
 from docopt import docopt
@@ -40,20 +41,25 @@ if __name__ == "__main__":
         print("n must be greater than 0")
         sys.exit(1)
 
-    training_data = sys.stdin.read()
-
-    if not arguments["-c"]:
-        training_data = training_data.split()
-    
     m = Markov(n=n, p=p, seed=s)
-    m.train(training_data)
 
-    print("Seed:", s)
-
-    out = islice(m, int(arguments["<len>"]))
-    if arguments["-c"]:
-        out = "".join(out)
+    if arguments["--load"]:
+        m.load(arguments["--load"])
     else:
-        out = " ".join(out)
-    
-    print(out)
+        training_data = sys.stdin.read()
+
+        if not arguments["-c"]:
+            training_data = training_data.split()
+
+        m.train(training_data)
+
+    if arguments["dump"]:
+        sys.stdout.buffer.write(m.dump())
+    else:
+        print("Seed:", s)
+
+        out = islice(m, int(arguments["<len>"]))
+        if arguments["-c"]:
+            print("".join(out))
+        else:
+            print(" ".join(out))
