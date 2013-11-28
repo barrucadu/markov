@@ -5,11 +5,12 @@ import os
 
 
 class Markov:
-    def __init__(self, n, p, seed):
+    def __init__(self, n, p, seed, paragraph=False):
         self.n = n
         self.p = p
         self.seed = seed
         self.data = {}
+        self.paragraph = paragraph
 
     def train(self, training_data):
         prev = ()
@@ -41,7 +42,7 @@ class Markov:
 
     def __iter__(self):
         random.seed(self.seed)
-        self.prev = ()
+        self.prev = ('\n\n',) if self.paragraph else ()
         return self
 
     def __next__(self):

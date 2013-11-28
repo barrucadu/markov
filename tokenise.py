@@ -5,10 +5,12 @@ class Tokeniser:
     """Flexible tokeniser for the Markov chain.
     """
 
-    def __init__(self, stream=None, characters=False, punctuation=False):
+    def __init__(self, stream=None, characters=False, punctuation=False,
+                 paragraphs=False):
         self.stream = sys.stdin if stream is None else stream
         self.characters = characters
         self.punctuation = punctuation
+        self.paragraphs = paragraphs
 
     def __iter__(self):
         self.buffer = ''
@@ -34,8 +36,8 @@ class Tokeniser:
                     break
 
             # Determine if we have a new token
+            out = None
             if self.buffer:
-                out = None
                 cout = False
 
                 if self.characters:
@@ -47,21 +49,33 @@ class Tokeniser:
                     out = self.buffer
                     cout = True
 
-                elif next_char.isspace():
+                elif self.paragraphs and self.buffer == '\n' and next_char == '\n':
+                    # Paragraph break
+                    out = self.buffer + next_char
+                    next_char = ''
+
+                elif not self.buffer.isspace() and next_char.isspace():
                     # A word
                     out = self.buffer
 
-                # If the next_char is a token, save i
+                # If the next_char is a token, save it
                 if cout:
                     self.tok = next_char
                     next_char = ''
 
-                # If a token has been found, return it and reset the buffer
-                if out:
-                    self.buffer = ''
-                    return out
+            # If a token has been found, reset the buffer
+            if out:
+                self.buffer = ''
 
-            self.buffer += next_char
+            # If the buffer is only spaces, clear it when a word is added
+            if self.buffer.isspace() and next_char.isalnum():
+                self.buffer = next_char
+            else:
+                self.buffer += next_char
+
+            # Return the found token
+            if out:
+                return out
 
         # If we're here, we got nothing but EOF.
         raise StopIteration

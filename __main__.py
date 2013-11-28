@@ -2,7 +2,7 @@
 
 Usage:
   markov dump [-n <n>] [-c]
-  markov <len> [-n <n>] [-p <p>] [-c] [-s <s>] [-t] [--load=<file>]
+  markov <len> [-n <n>] [-p <p>] [-c] [-s <s>] [-t] [-P] [--load=<file>]
   markov -h | --help
 
 Options:
@@ -12,6 +12,8 @@ Options:
   -c             Split input per character, rather than per word
   -t             Consider punctuation marks (when splitting by word) separate
                  tokens.
+  -P             Consider paragraph breaks to be a token, also start the generated text
+                 on a new paragraph.
   -s <s>         Random seed [default: system time]
   --load=<file>  Load parsed data from this file, process stdin if not given
   dump           Process text on stdin and dump data file to stdout
@@ -44,13 +46,14 @@ if __name__ == "__main__":
         print("n must be greater than 0")
         sys.exit(1)
 
-    m = Markov(n=n, p=p, seed=s)
+    m = Markov(n=n, p=p, seed=s, paragraph=arguments['-P'])
 
     if arguments["--load"]:
         m.load(arguments["--load"])
     else:
         training_data = Tokeniser(characters=arguments['-c'],
-                                  punctuation=arguments['-t'])
+                                  punctuation=arguments['-t'],
+                                  paragraphs=arguments['-P'])
 
         m.train(training_data)
 
