@@ -22,7 +22,7 @@ from docopt import docopt
 import sys
 from time import time
 from itertools import islice
-import re
+from tokenise import Tokeniser
 from markov import Markov
 
 if __name__ == "__main__":
@@ -49,13 +49,8 @@ if __name__ == "__main__":
     if arguments["--load"]:
         m.load(arguments["--load"])
     else:
-        training_data = sys.stdin.read()
-
-        if not arguments["-c"]:
-            if arguments["-t"]:
-                training_data = re.findall(r"[\w']+|[^\w\s]", training_data)
-            else:
-                training_data = training_data.split()
+        training_data = Tokeniser(characters=arguments['-c'],
+                                  punctuation=arguments['-t'])
 
         m.train(training_data)
 
