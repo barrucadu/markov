@@ -2,7 +2,7 @@
 
 Usage:
   markov dump [-n <n>] [-c]
-  markov <len> [-n <n>] [-p <p>] [-c] [-s <s>] [--load=<file>]
+  markov <len> [-n <n>] [-p <p>] [-c] [-s <s>] [-t] [--load=<file>]
   markov -h | --help
 
 Options:
@@ -10,6 +10,8 @@ Options:
   -n <n>         The number of symbols to look at in generation [default: 1]
   -p <p>         The probability to pick a random token [default: 0.05]
   -c             Split input per character, rather than per word
+  -t             Consider punctuation marks (when splitting by word) separate
+                 tokens.
   -s <s>         Random seed [default: system time]
   --load=<file>  Load parsed data from this file, process stdin if not given
   dump           Process text on stdin and dump data file to stdout
@@ -20,6 +22,7 @@ from docopt import docopt
 import sys
 from time import time
 from itertools import islice
+import re
 from markov import Markov
 
 if __name__ == "__main__":
@@ -49,7 +52,10 @@ if __name__ == "__main__":
         training_data = sys.stdin.read()
 
         if not arguments["-c"]:
-            training_data = training_data.split()
+            if arguments["-t"]:
+                training_data = re.findall(r"[\w']+|[^\w\s]", training_data)
+            else:
+                training_data = training_data.split()
 
         m.train(training_data)
 
