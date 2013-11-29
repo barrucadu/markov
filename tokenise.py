@@ -29,8 +29,10 @@ class Tokeniser:
             # Read the next character. If EOF, return what we have in the
             # buffer as the final token. Set a flag so we know to terminate
             # after this point.
-            next_char = self.stream.read(1)
-            if next_char == '':
+            try:
+                next_char = next(self.stream)
+            except:
+                next_char = ''
                 self.halt = True
                 if not self.buffer:
                     break
