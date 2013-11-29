@@ -1,4 +1,3 @@
-#import readline
 import cmd
 import shlex
 from docopt import docopt
