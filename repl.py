@@ -148,22 +148,21 @@ continue [<len>]"""
 
     # Loading and saving data
     @arg_wrapper("train",
-                 "<n> ([--characters] | [--punctuation] [--paragraphs]) <path> ...",
+                 "<n> [--punctuation] [--paragraphs] <path> ...",
                  {"<n>": (int,)})
     def do_train(self, args):
         """Train a generator on a corpus.
 
-train <n> ([--characters] | [--punctuation] [--paragraphs]) <path> ...
+train <n> [--punctuation] [--paragraphs] <path> ...
 
 Discard the current generator, and train a new generator on the given paths.
 Wildcards are allowed.
 
 <n> is the length of prefix (producing <n+1>-grams).
 
-Training can be either done per character, or per word. The 'characters' option
-enables the former. The 'punctuation' option treats punctuation marks as
-separate tokens, and the 'paragraphs' option treats paragraph breaks as a
-token.
+Training is done per token (word). The 'punctuation' option treats punctuation
+marks as separate tokens, and the 'paragraphs' option treats paragraph breaks
+as a token.
 """
 
         paths = [path
@@ -177,7 +176,6 @@ token.
                         yield char
 
         training_data = Tokeniser(stream=charinput(paths),
-                                  characters=args["--characters"],
                                   punctuation=args["--punctuation"],
                                   paragraphs=args["--paragraphs"])
 

@@ -5,10 +5,8 @@ class Tokeniser:
     """Flexible tokeniser for the Markov chain.
     """
 
-    def __init__(self, stream=None, characters=False, punctuation=False,
-                 paragraphs=False):
+    def __init__(self, stream=None, punctuation=False, paragraphs=False):
         self.stream = sys.stdin if stream is None else stream
-        self.characters = characters
         self.punctuation = punctuation
         self.paragraphs = paragraphs
 
@@ -42,11 +40,7 @@ class Tokeniser:
             if self.buffer:
                 cout = False
 
-                if self.characters:
-                    # Split by character
-                    out = self.buffer
-
-                elif self.punctuation and not next_char.isalnum() and next_char.isprintable():
+                if self.punctuation and not next_char.isalnum() and next_char.isprintable():
                     # Punctuation mark
                     out = self.buffer
                     cout = True
