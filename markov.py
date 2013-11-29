@@ -50,11 +50,11 @@ class Markov:
             print("Could not dump to file.")
             return False
 
-    def reset(self, seed, prob):
+    def reset(self, seed, prob, prev):
         self.seed = seed
         self.p = prob
+        self.prev = prev
         random.seed(seed)
-        self.prev = ('\n\n',) if self.paragraph else ()
 
     def __iter__(self):
         return self

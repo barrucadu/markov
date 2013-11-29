@@ -53,7 +53,9 @@ class Repl(cmd.Cmd):
         self.generator = None
 
     # Generate output
-    def _gen(self, args, startf=lambda t: True, endf=lambda t: True, kill=0):
+    def _gen(self, args,
+             startf=lambda t: True, endf=lambda t: True,
+             kill=0, prefix=[]):
         """Generate a stream of output.
         """
 
@@ -65,7 +67,7 @@ class Repl(cmd.Cmd):
             args["--seed"] = int(time())
             print("Using seed: {}".format(args["--seed"]))
 
-        self.markov.reset(args["--seed"], args["--prob"])
+        self.markov.reset(args["--seed"], args["--prob"], tuple(prefix))
 
         itertools.dropwhile(lambda t: not startf(t), self.markov)
         next(itertools.islice(self.markov,
@@ -119,7 +121,7 @@ give, drop that many tokens from the start of the output.
             print("Current markov chain has no paragraphs!")
             return False
 
-        self._gen(args, endf=lambda t: t == '\n\n', kill=1)
+        self._gen(args, endf=lambda t: t == '\n\n', kill=1, prefix=['\n\n'])
 
     @arg_wrapper("sentences",
                  "<len> [--seed=<seed>] [--prob=<prob>] [--offset=<offset>]",
