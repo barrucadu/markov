@@ -70,7 +70,7 @@ class Tokeniser:
                 self.buffer = ''
 
             # If the buffer is only spaces, clear it when a word is added
-            if self.buffer.isspace() and next_char.isalnum():
+            if self.buffer.isspace() and not next_char.isspace():
                 self.buffer = next_char
             else:
                 self.buffer += next_char
