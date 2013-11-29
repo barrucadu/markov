@@ -50,7 +50,7 @@ class Repl(cmd.Cmd):
         self.generator = None
 
     # Generate output
-    def _gen(self, args, startf=lambda t: True, endf=lambda t: True):
+    def _gen(self, args, startf=lambda t: True, endf=lambda t: True, kill=0):
         """Generate a stream of output.
         """
 
@@ -76,7 +76,7 @@ class Repl(cmd.Cmd):
                 out.append(tok)
                 if endf(tok):
                     n -= 1
-            return(' '.join(out))
+            return(' '.join(out if not kill else out[:-kill]))
 
         self.generator = gen
         print(self.generator(args["<len>"]))
@@ -116,7 +116,7 @@ give, drop that many tokens from the start of the output.
             print("Current markov chain has no paragraphs!")
             return False
 
-        self._gen(args, endf=lambda t: t == '\n\n')
+        self._gen(args, endf=lambda t: t == '\n\n', kill=1)
 
     @arg_wrapper("sentences",
                  "<len> [--seed=<seed>] [--prob=<prob>] [--offset=<offset>]",
@@ -131,12 +131,12 @@ give, drop that many tokens from the start of the output.
         self._gen(args, startf=sentence_token, endf=sentence_token)
 
     @arg_wrapper("continue",
-                 "<len>",
-                 {"<len>": (int,)})
+                 "[<len>]",
+                 {"<len>": (int, 1)})
     def do_continue(self, args):
         """Continue generating output.
 
-continue <len>"""
+continue [<len>]"""
 
         if self.generator is not None:
             print(self.generator(args["<len>"]))
