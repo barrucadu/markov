@@ -2,7 +2,6 @@ import cmd
 import shlex
 from docopt import docopt
 from time import time
-from itertools import islice
 import os
 from glob import glob
 from tokenise import Tokeniser
@@ -50,6 +49,32 @@ class Repl(cmd.Cmd):
         self.generator = None
 
     # Generate output
+    def _gen(self, args, endf=lambda t: True):
+        """Generate a stream of output.
+        """
+
+        if not self.markov:
+            print("No markov chain loaded!")
+            return False
+
+        if args["--seed"] is None:
+            args["--seed"] = int(time())
+            print("Using seed: {}".format(args["--seed"]))
+
+        self.markov.reset(args["--seed"], args["--prob"])
+
+        def gen(n):
+            out = []
+            while n > 0:
+                tok = next(self.markov)
+                out.append(tok)
+                if endf(tok):
+                    n -= 1
+            return(' '.join(out[:-1]))
+
+        self.generator = gen
+        print(self.generator(args["<len>"]))
+
     @arg_wrapper("tokens",
                  "<len> [--seed=<seed>] [--prob=<prob>]",
                  {"<len>": (int,),
@@ -65,17 +90,7 @@ seed is given, the current system time is used; and <prob> is the probability
 of random token choice. The default value for <prob> is 0.
 """
 
-        if not self.markov:
-            print("No markov chain loaded!")
-            return False
-
-        if args["--seed"] is None:
-            args["--seed"] = int(time())
-            print("Using seed: {}".format(args["--seed"]))
-
-        self.markov.reset(args["--seed"], args["--prob"])
-        self.generator = lambda n: " ".join(islice(self.markov, n))
-        print(self.generator(args["<len>"]))
+        self._gen(args)
 
     @arg_wrapper("paragraphs",
                  "<len> [--seed=<seed>] [--prob=<prob>]",
@@ -91,31 +106,11 @@ paragraphs <len> [--seed=<seed>] [--prob=<prob>]
 seed is given, the current system time is used; and <prob> is the probability
 of random token choice. The default value for <prob> is 0."""
 
-        if not self.markov:
-            print("No markov chain loaded!")
-            return False
-
-        if not self.markov.paragraph:
+        if self.markov and not self.markov.paragraph:
             print("Current markov chain has no paragraphs!")
             return False
 
-        if args["--seed"] is None:
-            args["--seed"] = int(time())
-            print("Using seed: {}".format(args["--seed"]))
-
-        self.markov.reset(args["--seed"], args["--prob"])
-
-        def gen(n):
-            out = []
-            while n > 0:
-                tok = next(self.markov)
-                out.append(tok)
-                if tok == '\n\n':
-                    n -= 1
-            return(' '.join(out[:-1]))
-
-        self.generator = gen
-        print(self.generator(args["<len>"]))
+        self._gen(args, lambda t: t == '\n\n')
 
     @arg_wrapper("continue",
                  "<len>",
