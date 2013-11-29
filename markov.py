@@ -5,10 +5,10 @@ import os
 
 
 class Markov:
-    def __init__(self, n, p, seed, paragraph=False):
+    def __init__(self, n, p, paragraph=False):
         self.n = n
         self.p = p
-        self.seed = seed
+        self.seed = None
         self.data = {}
         self.paragraph = paragraph
 
@@ -40,9 +40,12 @@ class Markov:
     def dump(self):
         return pickle.dumps((self.n, self.data))
 
-    def __iter__(self):
-        random.seed(self.seed)
+    def reset(self, seed):
+        self.seed = seed
+        random.seed(seed)
         self.prev = ('\n\n',) if self.paragraph else ()
+
+    def __iter__(self):
         return self
 
     def __next__(self):
