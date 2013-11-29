@@ -17,13 +17,21 @@ def decorator_with_arguments(wrapper):
 
 
 @decorator_with_arguments
-def arg_wrapper(f, cmd, argstr):
+def arg_wrapper(f, cmd, argstr, types={}):
     @wraps(f)
     def wrapper(self, line):
         try:
             args = docopt("usage: {} {}".format(cmd, argstr),
                           argv=shlex.split(line),
                           help=False)
+
+            for k, v in types.items():
+                try:
+                    if k in args:
+                        args[k] = v[0](args[k])
+                except:
+                    args[k] = v[1]
+
             f(self, args)
         except:
             print(cmd + " " + argstr)
@@ -43,7 +51,11 @@ class Repl(cmd.Cmd):
         self.generator = None
 
     # Generate output
-    @arg_wrapper("tokens", "<len> [--seed=<seed>] [--prob=<prob>]")
+    @arg_wrapper("tokens",
+                 "<len> [--seed=<seed>] [--prob=<prob>]",
+                 {"<len>": (int,),
+                  "--seed": (int, None),
+                  "--prob": (float, 0)})
     def do_tokens(self, args):
         """Generate tokens of output.
 
@@ -58,22 +70,19 @@ of random token choice. The default value for <prob> is 0.
             print("No markov chain loaded!")
             return False
 
-        try:
-            seed = int(args["<seed>"])
-        except:
-            seed = int(time())
-            print("Using seed: {}".format(seed))
+        if args["--seed"] is None:
+            args["--seed"] = int(time())
+            print("Using seed: {}".format(args["--seed"]))
 
-        try:
-            prob = float(args["<prob>"])
-        except:
-            prob = 0
-
-        self.markov.reset(seed, prob)
+        self.markov.reset(args["--seed"], args["--prob"])
         self.generator = lambda n: " ".join(islice(self.markov, n))
-        print(self.generator(int(args["<len>"])))
+        print(self.generator(args["<len>"]))
 
-    @arg_wrapper("paragraphs", "<len> [--seed=<seed>] [--prob=<prob>]")
+    @arg_wrapper("paragraphs",
+                 "<len> [--seed=<seed>] [--prob=<prob>]",
+                 {"<len>": (int,),
+                  "--seed": (int, None),
+                  "--prob": (float, 0)})
     def do_paragraphs(self, args):
         """Generate paragraphs of output.
 
@@ -91,18 +100,11 @@ of random token choice. The default value for <prob> is 0."""
             print("Current markov chain has no paragraphs!")
             return False
 
-        try:
-            seed = int(args["<seed>"])
-        except:
-            seed = int(time())
-            print("Using seed: {}".format(seed))
+        if args["--seed"] is None:
+            args["--seed"] = int(time())
+            print("Using seed: {}".format(args["--seed"]))
 
-        try:
-            prob = float(args["<prob>"])
-        except:
-            prob = 0
-
-        self.markov.reset(seed, prob)
+        self.markov.reset(args["--seed"], args["--prob"])
 
         def gen(n):
             out = []
@@ -114,21 +116,25 @@ of random token choice. The default value for <prob> is 0."""
             return(' '.join(out[:-1]))
 
         self.generator = gen
-        print(self.generator(int(args["<len>"])))
+        print(self.generator(args["<len>"]))
 
-    @arg_wrapper("continue", "<len>")
+    @arg_wrapper("continue",
+                 "<len>",
+                 {"<len>": (int,)})
     def do_continue(self, args):
         """Continue generating output.
 
 continue <len>"""
 
         if self.generator is not None:
-            self.generator(int(args["<len>"]))
+            print(self.generator(args["<len>"]))
         else:
             print("No generator to resume!")
 
     # Loading and saving data
-    @arg_wrapper("train", "<n> ([--characters] | [--punctuation] [--paragraphs]) <path> ...")
+    @arg_wrapper("train",
+                 "<n> ([--characters] | [--punctuation] [--paragraphs]) <path> ...",
+                 {"<n>": (int,)})
     def do_train(self, args):
         """Train a generator on a corpus.
 
@@ -160,12 +166,7 @@ token.
                                   punctuation=args["--punctuation"],
                                   paragraphs=args["--paragraphs"])
 
-        try:
-            n = int(args["<n>"])
-        except:
-            n = 3
-
-        self.markov = Markov(n)
+        self.markov = Markov(args["<n>"])
         self.markov.train(training_data)
         self.generator = None
 
