@@ -63,6 +63,9 @@ class Repl(cmd.Cmd):
 
         self.markov.reset(args["--seed"], args["--prob"])
 
+        for i in range(0, args["--offset"]):
+            next(self.markov)
+
         def gen(n):
             out = []
             while n > 0:
@@ -76,35 +79,39 @@ class Repl(cmd.Cmd):
         print(self.generator(args["<len>"]))
 
     @arg_wrapper("tokens",
-                 "<len> [--seed=<seed>] [--prob=<prob>]",
+                 "<len> [--seed=<seed>] [--prob=<prob>] [--offset=<offset>]",
                  {"<len>": (int,),
                   "--seed": (int, None),
-                  "--prob": (float, 0)})
+                  "--prob": (float, 0),
+                  "--offset": (int, 0)})
     def do_tokens(self, args):
         """Generate tokens of output.
 
-tokens <len> [--seed=<seed>] [--prob=<prob>]
+tokens <len> [--seed=<seed>] [--prob=<prob>] [--offset=<offset>]
 
 <len> is the length of the sequence; <seed> is the optional random seed. If no
 seed is given, the current system time is used; and <prob> is the probability
-of random token choice. The default value for <prob> is 0.
+of random token choice. The default value for <prob> is 0. If an offset is
+give, drop that many tokens from the start of the output.
 """
 
         self._gen(args)
 
     @arg_wrapper("paragraphs",
-                 "<len> [--seed=<seed>] [--prob=<prob>]",
+                 "<len> [--seed=<seed>] [--prob=<prob>] [--offset=<offset>]",
                  {"<len>": (int,),
                   "--seed": (int, None),
-                  "--prob": (float, 0)})
+                  "--prob": (float, 0),
+                  "--offset": (int, 0)})
     def do_paragraphs(self, args):
         """Generate paragraphs of output.
 
-paragraphs <len> [--seed=<seed>] [--prob=<prob>]
+paragraphs <len> [--seed=<seed>] [--prob=<prob>] [--offset=<offset>]
 
 <len> is the length of the sequence; <seed> is the optional random seed. If no
 seed is given, the current system time is used; and <prob> is the probability
-of random token choice. The default value for <prob> is 0."""
+of random token choice. The default value for <prob> is 0. If an offset is
+given, drop that many tokens from the output."""
 
         if self.markov and not self.markov.paragraph:
             print("Current markov chain has no paragraphs!")
