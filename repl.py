@@ -8,6 +8,7 @@ from tokenise import Tokeniser
 from markov import Markov
 import fileinput
 from functools import wraps
+import itertools
 
 
 def decorator_with_arguments(wrapper):
@@ -49,7 +50,7 @@ class Repl(cmd.Cmd):
         self.generator = None
 
     # Generate output
-    def _gen(self, args, endf=lambda t: True):
+    def _gen(self, args, startf=lambda t: True, endf=lambda t: True):
         """Generate a stream of output.
         """
 
@@ -63,8 +64,10 @@ class Repl(cmd.Cmd):
 
         self.markov.reset(args["--seed"], args["--prob"])
 
-        for i in range(0, args["--offset"]):
-            next(self.markov)
+        itertools.dropwhile(lambda t: not startf(t), self.markov)
+        next(itertools.islice(self.markov,
+                              args["--offset"],
+                              args["--offset"]), None)
 
         def gen(n):
             out = []
@@ -73,7 +76,7 @@ class Repl(cmd.Cmd):
                 out.append(tok)
                 if endf(tok):
                     n -= 1
-            return(' '.join(out[:-1]))
+            return(' '.join(out))
 
         self.generator = gen
         print(self.generator(args["<len>"]))
@@ -113,7 +116,19 @@ give, drop that many tokens from the start of the output.
             print("Current markov chain has no paragraphs!")
             return False
 
-        self._gen(args, lambda t: t == '\n\n')
+        self._gen(args, endf=lambda t: t == '\n\n')
+
+    @arg_wrapper("sentences",
+                 "<len> [--seed=<seed>] [--prob=<prob>] [--offset=<offset>]",
+                 {"<len>": (int,),
+                  "--seed": (int, None),
+                  "--prob": (float, 0),
+                  "--offset": (int, 0)})
+    def do_sentences(self, args):
+        """Generate sentences of output. See 'help generators'."""
+
+        sentence_token = lambda t: t[-1] in ".!?"
+        self._gen(args, startf=sentence_token, endf=sentence_token)
 
     @arg_wrapper("continue",
                  "<len>",
