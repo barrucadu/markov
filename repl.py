@@ -78,6 +78,17 @@ class Repl(cmd.Cmd):
         self.generator = gen
         print(self.generator(args["<len>"]))
 
+    def help_generators(self):
+        print("""Generate a sequence of output:
+
+generator <len> [--seed=<seed>] [--prob=<prob>] [--offset=<offset>]
+
+<len> is the length of the sequence; <seed> is the optional random seed. If no
+seed is given, the current system time is used; and <prob> is the probability
+of random token choice. The default value for <prob> is 0. If an offset is
+give, drop that many tokens from the start of the output.
+""")
+
     @arg_wrapper("tokens",
                  "<len> [--seed=<seed>] [--prob=<prob>] [--offset=<offset>]",
                  {"<len>": (int,),
@@ -85,15 +96,7 @@ class Repl(cmd.Cmd):
                   "--prob": (float, 0),
                   "--offset": (int, 0)})
     def do_tokens(self, args):
-        """Generate tokens of output.
-
-tokens <len> [--seed=<seed>] [--prob=<prob>] [--offset=<offset>]
-
-<len> is the length of the sequence; <seed> is the optional random seed. If no
-seed is given, the current system time is used; and <prob> is the probability
-of random token choice. The default value for <prob> is 0. If an offset is
-give, drop that many tokens from the start of the output.
-"""
+        """Generate tokens of output. See 'help generators'."""
 
         self._gen(args)
 
@@ -104,14 +107,7 @@ give, drop that many tokens from the start of the output.
                   "--prob": (float, 0),
                   "--offset": (int, 0)})
     def do_paragraphs(self, args):
-        """Generate paragraphs of output.
-
-paragraphs <len> [--seed=<seed>] [--prob=<prob>] [--offset=<offset>]
-
-<len> is the length of the sequence; <seed> is the optional random seed. If no
-seed is given, the current system time is used; and <prob> is the probability
-of random token choice. The default value for <prob> is 0. If an offset is
-given, drop that many tokens from the output."""
+        """Generate paragraphs of output. See 'help generators'."""
 
         if self.markov and not self.markov.paragraph:
             print("Current markov chain has no paragraphs!")
