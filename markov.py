@@ -20,9 +20,13 @@ class Markov:
 
             for pprev in [prev[i:] for i in range(len(prev) + 1)]:
                 if not pprev in self.data:
-                    self.data[pprev] = []
+                    self.data[pprev] = [0, {}]
 
-                self.data[pprev].append(token)
+                if not token in self.data[pprev][1]:
+                    self.data[pprev][1][token] = 0
+
+                self.data[pprev][1][token] += 1
+                self.data[pprev][0] += 1
 
             prev += (token,)
             if len(prev) > self.n:
@@ -61,16 +65,26 @@ class Markov:
 
     def __next__(self):
         if self.prev == () or random.random() < self.p:
-            next = random.choice(self.data[()])
+            next = self._choose(self.data[()])
         else:
             try:
-                next = random.choice(self.data[self.prev])
+                next = self._choose(self.data[self.prev])
             except:
                 self.prev = ()
-                next = random.choice(self.data[self.prev])
+                next = self._choose(self.data[self.prev])
 
         self.prev += (next,)
         if len(self.prev) > self.n:
             self.prev = self.prev[1:]
 
         return next
+
+    def _choose(self, freqdict):
+        total, choices = freqdict
+        idx = random.randrange(total)
+
+        for token, freq in choices.items():
+            if idx <= freq:
+                return token
+
+            idx -= freq
