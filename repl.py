@@ -21,7 +21,7 @@ def arg_wrapper(f, cmd, argstr):
     @wraps(f)
     def wrapper(self, line):
         try:
-            args = docopt("usage: {} {}".format(cmd, argstr, cmd),
+            args = docopt("usage: {} {}".format(cmd, argstr),
                           argv=shlex.split(line),
                           help=False)
             f(self, args)
@@ -69,24 +69,67 @@ of random token choice. The default value for <prob> is 0.
         except:
             prob = 0
 
-        self.generator = self.markov
-        self.generator.reset(seed, prob)
-        print(" ".join(islice(self.generator, int(args["<len>"]))))
+        self.markov.reset(seed, prob)
+        self.generator = lambda n: " ".join(islice(self.markov, n))
+        print(self.generator(int(args["<len>"])))
+
+    @arg_wrapper("paragraphs", "<len> [--seed=<seed>] [--prob=<prob>]")
+    def do_paragraphs(self, args):
+        """Generate paragraphs of output.
+
+paragraphs <len> [--seed=<seed>] [--prob=<prob>]
+
+<len> is the length of the sequence; <seed> is the optional random seed. If no
+seed is given, the current system time is used; and <prob> is the probability
+of random token choice. The default value for <prob> is 0."""
+
+        if not self.markov:
+            print("No markov chain loaded!")
+            return False
+
+        if not self.markov.paragraph:
+            print("Current markov chain has no paragraphs!")
+            return False
+
+        try:
+            seed = int(args["<seed>"])
+        except:
+            seed = int(time())
+            print("Using seed: {}".format(seed))
+
+        try:
+            prob = float(args["<prob>"])
+        except:
+            prob = 0
+
+        self.markov.reset(seed, prob)
+
+        def gen(n):
+            out = []
+            while n > 0:
+                tok = next(self.markov)
+                out.append(tok)
+                if tok == '\n\n':
+                    n -= 1
+            return(' '.join(out[:-1]))
+
+        self.generator = gen
+        print(self.generator(int(args["<len>"])))
 
     @arg_wrapper("continue", "<len>")
     def do_continue(self, args):
-        """Continue generating tokens.
+        """Continue generating output.
 
 continue <len>"""
 
-        if self.generator:
-            print(" ".join(islice(self.generator, int(args["<len>"]))))
+        if self.generator is not None:
+            self.generator(int(args["<len>"]))
         else:
             print("No generator to resume!")
 
     # Loading and saving data
     @arg_wrapper("train", "<n> ([--characters] | [--punctuation] [--paragraphs]) <path> ...")
-    def do_train(self, line):
+    def do_train(self, args):
         """Train a generator on a corpus.
 
 train <n> ([--characters] | [--punctuation] [--paragraphs]) <path> ...
@@ -127,7 +170,7 @@ token.
         self.generator = None
 
     @arg_wrapper("load", "<file>")
-    def do_load(self, line):
+    def do_load(self, args):
         """Load a generator from disk.
 
 load <file>
@@ -140,7 +183,7 @@ file."""
         self.markov.load(args["<file>"])
 
     @arg_wrapper("dump", "<file>")
-    def do_dump(self, line):
+    def do_dump(self, args):
         """Save a generator to disk.
 
 dump <file>
