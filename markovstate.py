@@ -70,22 +70,13 @@ class MarkovState:
 
         return self.generator(chunks)
 
-    def paragraphs(self):
-        """Check if paragraphs are supported.
-        """
-
-        if self.markov is None or not self.markov.paragraph:
-            return False
-
-        return True
-
-    def train(self, n, stream, punctuation=False, paragraphs=False):
+    def train(self, n, stream, punctuation=False, noparagraphs=False):
         """Train a new markov chain, overwriting the existing one.
         """
 
         training_data = tokenise.Tokeniser(stream=stream,
                                            punctuation=punctuation,
-                                           paragraphs=paragraphs)
+                                           noparagraphs=noparagraphs)
 
         self.markov = markov.Markov(n)
         self.markov.train(training_data)

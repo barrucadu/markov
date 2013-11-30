@@ -10,16 +10,11 @@ class Markov:
         self.p = 0
         self.seed = None
         self.data = {}
-        self.paragraph = False
 
     def train(self, training_data):
         prev = ()
         for token in training_data:
             token = sys.intern(token)
-            if token == '\n\n':
-                # This data set has paragraph breaks in.
-                self.paragraph = True
-
             for pprev in [prev[i:] for i in range(len(prev) + 1)]:
                 if not pprev in self.data:
                     self.data[pprev] = [0, {}]
@@ -37,7 +32,7 @@ class Markov:
     def load(self, filename):
         with open(os.path.expanduser(filename), "rb") as f:
             try:
-                n, self.paragraph, self.data = pickle.load(f)
+                n, self.data = pickle.load(f)
 
                 if self.n > n:
                     print("warning: changing n value to", n)
@@ -50,7 +45,7 @@ class Markov:
     def dump(self, filename):
         try:
             with open(os.path.expanduser(filename), "wb") as f:
-                pickle.dump((self.n, self.paragraph, self.data), f)
+                pickle.dump((self.n, self.data), f)
             return True
         except:
             print("Could not dump to file.")

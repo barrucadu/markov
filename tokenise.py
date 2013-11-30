@@ -5,10 +5,10 @@ class Tokeniser:
     """Flexible tokeniser for the Markov chain.
     """
 
-    def __init__(self, stream=None, punctuation=False, paragraphs=False):
+    def __init__(self, stream=None, punctuation=False, noparagraphs=False):
         self.stream = sys.stdin if stream is None else stream
         self.punctuation = punctuation
-        self.paragraphs = paragraphs
+        self.paragraphs = not noparagraphs
 
     def __iter__(self):
         self.buffer = ''

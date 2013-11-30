@@ -80,10 +80,6 @@ give, drop that many tokens from the start of the output.
     def do_paragraphs(self, args):
         """Generate paragraphs of output. See 'help generators'."""
 
-        if not self.markov.paragraphs():
-            print("Current markov chain has no paragraphs!")
-            return
-
         try:
             print(self.markov.generate(args["<len>"], args["--seed"],
                                        args["--prob"], args["--offset"],
@@ -125,12 +121,12 @@ continue [<len>]"""
 
     # Loading and saving data
     @arg_wrapper("train",
-                 "<n> [--punctuation] [--paragraphs] <path> ...",
+                 "<n> [--punctuation] [--noparagraphs] <path> ...",
                  {"<n>": (int,)})
     def do_train(self, args):
         """Train a generator on a corpus.
 
-train <n> [--punctuation] [--paragraphs] <path> ...
+train <n> [--punctuation] [--noparagraphs] <path> ...
 
 Discard the current generator, and train a new generator on the given paths.
 Wildcards are allowed.
@@ -154,8 +150,7 @@ as a token.
 
         self.markov.train(args["<n>"],
                           charinput(paths),
-                          punctuation=args["--punctuation"],
-                          paragraphs=args["--paragraphs"])
+                          noparagraphs=args["--noparagraphs"])
 
     @arg_wrapper("load", "<file>")
     def do_load(self, args):
