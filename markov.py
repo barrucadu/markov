@@ -1,6 +1,7 @@
 import random
 import pickle
 import os
+import sys
 
 
 class Markov:
@@ -14,6 +15,7 @@ class Markov:
     def train(self, training_data):
         prev = ()
         for token in training_data:
+            token = sys.intern(token)
             if token == '\n\n':
                 # This data set has paragraph breaks in.
                 self.paragraph = True
