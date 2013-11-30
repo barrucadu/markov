@@ -1,0 +1,109 @@
+import time
+import itertools
+
+import tokenise
+import markov
+
+
+class MarkovStateError(Exception):
+    def __init__(self, value):
+        self.value = value
+
+
+class MarkovState:
+    """Class to keep track of a markov generator in progress.
+    """
+
+    def __init__(self):
+        self.markov = None
+        self.generator = None
+
+    def generate(self, chunks, seed=None, prob=0, offset=0,
+                 startf=lambda t: True, endchunkf=lambda t: True,
+                 kill=0, prefix=()):
+        """Generate some output, starting anew. Then save the state of the
+           generator so it can be resumed later.
+
+           :param chunks: The number of chunks to generate.
+           :param seed: The random seed. If not given, use system time.
+           :param prob: The probability of random token substitution.
+           :param offset: The number of tokens to discard from the start.
+           :param startf: Only start outputting after a token for thich this is
+                          True is produced.
+           :param endchunkf: End a chunk when a token for which this is True
+                             is produced.
+           :param kill: Drop this many tokens from the end of the output,
+                        after finishing.
+           :param prefix: Prefix to seed the Markov chain with.
+           """
+
+        if self.markov is None:
+            raise MarkovStateError("No markov chain loaded!")
+
+        if seed is None:
+            seed = int(time.time())
+            print("Warning: using seed {}".format(seed))
+
+        self.markov.reset(seed, prob, prefix)
+
+        itertools.dropwhile(lambda t: not startf(t), self.markov)
+        next(itertools.islice(self.markov, offset, offset), None)
+
+        def gen(n):
+            out = []
+            while n > 0:
+                tok = next(self.markov)
+                out.append(tok)
+                if endchunkf(tok):
+                    n -= 1
+            return(' '.join(out if not kill else out[:-kill]))
+
+        self.generator = gen
+        return self.generator(chunks)
+
+    def more(self, chunks=1):
+        """Generate more chunks of output, using the established generator.
+        """
+
+        if self.generator is None:
+            raise MarkovStateError("No generator to resume!")
+
+        return self.generator(chunks)
+
+    def paragraphs(self):
+        """Check if paragraphs are supported.
+        """
+
+        if self.markov is None or not self.markov.paragraph:
+            return False
+
+        return True
+
+    def train(self, n, stream, punctuation=False, paragraphs=False):
+        """Train a new markov chain, overwriting the existing one.
+        """
+
+        training_data = tokenise.Tokeniser(stream=stream,
+                                           punctuation=punctuation,
+                                           paragraphs=paragraphs)
+
+        self.markov = markov.Markov(n)
+        self.markov.train(training_data)
+        self.generator = None
+
+    def load(self, filename):
+        """Load a markov chain from a file.
+        """
+
+        self.generator = None
+        self.markov = markov.Markov()
+        self.markov.load(filename)
+
+    def dump(self, filename):
+        """Dump a markov chain to a file.
+        """
+
+        if self.markov is None:
+            raise MarkovStateError("No markov chain loaded!")
+
+        self.markov.dump(filename)

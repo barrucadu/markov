@@ -1,14 +1,11 @@
 import cmd
 import shlex
 from docopt import docopt
-from time import time
 import os
 from glob import glob
-from tokenise import Tokeniser
-from markov import Markov
+import markovstate
 import fileinput
 from functools import wraps
-import itertools
 
 
 def decorator_with_arguments(wrapper):
@@ -49,42 +46,7 @@ class Repl(cmd.Cmd):
         """
 
         super().__init__()
-        self.markov = None
-        self.generator = None
-
-    # Generate output
-    def _gen(self, args,
-             startf=lambda t: True, endf=lambda t: True,
-             kill=0, prefix=[]):
-        """Generate a stream of output.
-        """
-
-        if not self.markov:
-            print("No markov chain loaded!")
-            return False
-
-        if args["--seed"] is None:
-            args["--seed"] = int(time())
-            print("Using seed: {}".format(args["--seed"]))
-
-        self.markov.reset(args["--seed"], args["--prob"], tuple(prefix))
-
-        itertools.dropwhile(lambda t: not startf(t), self.markov)
-        next(itertools.islice(self.markov,
-                              args["--offset"],
-                              args["--offset"]), None)
-
-        def gen(n):
-            out = []
-            while n > 0:
-                tok = next(self.markov)
-                out.append(tok)
-                if endf(tok):
-                    n -= 1
-            return(' '.join(out if not kill else out[:-kill]))
-
-        self.generator = gen
-        print(self.generator(args["<len>"]))
+        self.markov = markovstate.MarkovState()
 
     def help_generators(self):
         print("""Generate a sequence of output:
@@ -106,7 +68,11 @@ give, drop that many tokens from the start of the output.
     def do_tokens(self, args):
         """Generate tokens of output. See 'help generators'."""
 
-        self._gen(args)
+        try:
+            print(self.markov.generate(args["<len>"], args["--seed"],
+                                       args["--prob"], args["--offset"]))
+        except markovstate.MarkovStateError as e:
+            print(e.value)
 
     @arg_wrapper("paragraphs",
                  "<len> [--seed=<seed>] [--prob=<prob>] [--offset=<offset>]",
@@ -117,11 +83,17 @@ give, drop that many tokens from the start of the output.
     def do_paragraphs(self, args):
         """Generate paragraphs of output. See 'help generators'."""
 
-        if self.markov and not self.markov.paragraph:
+        if not self.markov.paragraphs():
             print("Current markov chain has no paragraphs!")
-            return False
+            return
 
-        self._gen(args, endf=lambda t: t == '\n\n', kill=1, prefix=['\n\n'])
+        try:
+            print(self.markov.generate(args["<len>"], args["--seed"],
+                                       args["--prob"], args["--offset"],
+                                       endchunkf=lambda t: t == '\n\n',
+                                       kill=1, prefix=('\n\n',)))
+        except markovstate.MarkovStateError as e:
+            print(e.value)
 
     @arg_wrapper("sentences",
                  "<len> [--seed=<seed>] [--prob=<prob>] [--offset=<offset>]",
@@ -133,7 +105,13 @@ give, drop that many tokens from the start of the output.
         """Generate sentences of output. See 'help generators'."""
 
         sentence_token = lambda t: t[-1] in ".!?"
-        self._gen(args, startf=sentence_token, endf=sentence_token)
+        try:
+            print(self.markov.generate(args["<len>"], args["--seed"],
+                                       args["--prob"], args["--offset"],
+                                       startf=sentence_token,
+                                       endchunkf=sentence_token))
+        except markovstate.MarkovStateError as e:
+            print(e.value)
 
     @arg_wrapper("continue",
                  "[<len>]",
@@ -143,10 +121,10 @@ give, drop that many tokens from the start of the output.
 
 continue [<len>]"""
 
-        if self.generator is not None:
-            print(self.generator(args["<len>"]))
-        else:
-            print("No generator to resume!")
+        try:
+            print(self.markov.more(args["<len>"]))
+        except markovstate.MarkovStateError as e:
+            print(e.value)
 
     # Loading and saving data
     @arg_wrapper("train",
@@ -177,13 +155,10 @@ as a token.
                     for char in line:
                         yield char
 
-        training_data = Tokeniser(stream=charinput(paths),
-                                  punctuation=args["--punctuation"],
-                                  paragraphs=args["--paragraphs"])
-
-        self.markov = Markov(args["<n>"])
-        self.markov.train(training_data)
-        self.generator = None
+        self.markov.train(args["<n>"],
+                          charinput(paths),
+                          punctuation=args["--punctuation"],
+                          paragraphs=args["--paragraphs"])
 
     @arg_wrapper("load", "<file>")
     def do_load(self, args):
@@ -194,8 +169,6 @@ load <file>
 Discard the current generator, and load the trained generator in the given
 file."""
 
-        self.generator = None
-        self.markov = Markov()
         self.markov.load(args["<file>"])
 
     @arg_wrapper("dump", "<file>")
@@ -206,4 +179,7 @@ dump <file>
 
 Save the trained generator to the given file."""
 
-        self.markov.dump(args["<file>"])
+        try:
+            self.markov.dump(args["<file>"])
+        except markovstate.MarkovStateError as e:
+            print(e.value)
