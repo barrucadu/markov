@@ -5,10 +5,9 @@ class Tokeniser:
     """Flexible tokeniser for the Markov chain.
     """
 
-    def __init__(self, stream=None, punctuation=False, noparagraphs=False):
+    def __init__(self, stream=None, noparagraphs=False):
         self.stream = sys.stdin if stream is None else stream
-        self.punctuation = punctuation
-        self.paragraphs = not noparagraphs
+        self.noparagraphs = noparagraphs
 
     def __iter__(self):
         self.buffer = ''
@@ -40,15 +39,11 @@ class Tokeniser:
             if self.buffer:
                 cout = False
 
-                if self.punctuation and not next_char.isalnum() and next_char.isprintable():
-                    # Punctuation mark
-                    out = self.buffer
-                    cout = True
-
-                elif self.paragraphs and self.buffer == '\n' and next_char == '\n':
+                if self.buffer == '\n' and next_char == '\n':
                     # Paragraph break
-                    out = self.buffer + next_char
-                    next_char = ''
+                    if not self.noparagraphs:
+                        out = self.buffer + next_char
+                        next_char = ''
 
                 elif not self.buffer.isspace() and next_char.isspace():
                     # A word
