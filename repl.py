@@ -16,9 +16,6 @@ def decorator_with_arguments(wrapper):
 def arg_wrapper(f, cmd, argstr="", types={}):
     @wraps(f)
     def wrapper(self, line):
-        if not argstr:
-            return f(self, line)
-
         try:
             args = docopt("usage: {} {}".format(cmd, argstr),
                           argv=shlex.split(line),

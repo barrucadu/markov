@@ -50,7 +50,7 @@ class Markov:
     def dump(self, filename):
         try:
             with open(os.path.expanduser(filename), "wb") as f:
-                return pickle.dump((self.n, self.paragraph, self.data), f)
+                pickle.dump((self.n, self.paragraph, self.data), f)
             return True
         except:
             print("Could not dump to file.")
