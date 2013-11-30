@@ -1,11 +1,11 @@
 import cmd
 import shlex
-from docopt import docopt
+import docopt
 import os
-from glob import glob
+import glob
 import markovstate
 import fileinput
-from functools import wraps
+import functools
 
 
 def decorator_with_arguments(wrapper):
@@ -14,12 +14,12 @@ def decorator_with_arguments(wrapper):
 
 @decorator_with_arguments
 def arg_wrapper(f, cmd, argstr="", types={}):
-    @wraps(f)
+    @functools.wraps(f)
     def wrapper(self, line):
         try:
-            args = docopt("usage: {} {}".format(cmd, argstr),
-                          argv=shlex.split(line),
-                          help=False)
+            args = docopt.docopt("usage: {} {}".format(cmd, argstr),
+                                 argv=shlex.split(line),
+                                 help=False)
 
             for k, v in types.items():
                 try:
@@ -29,7 +29,7 @@ def arg_wrapper(f, cmd, argstr="", types={}):
                     args[k] = v[1]
 
             return f(self, args)
-        except:
+        except docopt.DocoptExit:
             print(cmd + " " + argstr)
     return wrapper
 
@@ -106,9 +106,7 @@ give, drop that many tokens from the start of the output.
         except markovstate.MarkovStateError as e:
             print(e.value)
 
-    @arg_wrapper("continue",
-                 "[<len>]",
-                 {"<len>": (int, 1)})
+    @arg_wrapper("continue", "[<len>]", {"<len>": (int, 1)})
     def do_continue(self, args):
         """Continue generating output.
 
@@ -120,9 +118,7 @@ continue [<len>]"""
             print(e.value)
 
     # Loading and saving data
-    @arg_wrapper("train",
-                 "<n> [--noparagraphs] <path> ...",
-                 {"<n>": (int,)})
+    @arg_wrapper("train", "<n> [--noparagraphs] <path> ...", {"<n>": (int,)})
     def do_train(self, args):
         """Train a generator on a corpus.
 
@@ -138,7 +134,7 @@ than a separate token.
 
         paths = [path
                  for ps in args["<path>"]
-                 for path in glob(os.path.expanduser(ps))]
+                 for path in glob.glob(os.path.expanduser(ps))]
 
         def charinput(paths):
             with fileinput.input(paths) as fi:
