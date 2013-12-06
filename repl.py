@@ -24,7 +24,7 @@ def arg_wrapper(f, cmd, argstr="", types={}):
             for k, v in types.items():
                 try:
                     if k in args:
-                        args[k] = v[0](args[k])
+                        args[k] = v[1] if args[k] == [] else v[0](args[k])
                 except:
                     args[k] = v[1]
 
