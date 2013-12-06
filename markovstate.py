@@ -44,6 +44,10 @@ class MarkovState:
             seed = int(time.time())
             print("Warning: using seed {}".format(seed))
 
+        if len(prefix) > self.markov.n:
+            print("Warning: truncating prefix")
+            prefix = prefix[self.markov.n - 1:]
+
         self.markov.reset(seed, prob, prefix)
 
         itertools.dropwhile(lambda t: not startf(t), self.markov)

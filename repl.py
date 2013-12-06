@@ -48,35 +48,40 @@ class Repl(cmd.Cmd):
     def help_generators(self):
         print("""Generate a sequence of output:
 
-generator <len> [--seed=<seed>] [--prob=<prob>] [--offset=<offset>]
+generator <len> [--seed=<seed>] [--prob=<prob>] [--offset=<offset>] [--] [<prefix>...]
 
-<len> is the length of the sequence; <seed> is the optional random seed. If no
-seed is given, the current system time is used; and <prob> is the probability
-of random token choice. The default value for <prob> is 0. If an offset is
-give, drop that many tokens from the start of the output.
+<len> is the length of the sequence; <seed> is the optional random
+seed. If no seed is given, the current system time is used; and <prob>
+is the probability of random token choice. The default value for <prob>
+is 0. If an offset is give, drop that many tokens from the start of the
+output. The optional prefix is used to see the generator with tokens. A
+prefix of length longer than the generator's n will be truncated.
 """)
 
     @arg_wrapper("tokens",
-                 "<len> [--seed=<seed>] [--prob=<prob>] [--offset=<offset>]",
+                 "<len> [--seed=<seed>] [--prob=<prob>] [--offset=<offset>] [--] [<prefix>...]",
                  {"<len>": (int,),
                   "--seed": (int, None),
                   "--prob": (float, 0),
-                  "--offset": (int, 0)})
+                  "--offset": (int, 0),
+                  "<prefix>": (tuple, ())})
     def do_tokens(self, args):
         """Generate tokens of output. See 'help generators'."""
 
         try:
             print(self.markov.generate(args["<len>"], args["--seed"],
-                                       args["--prob"], args["--offset"]))
+                                       args["--prob"], args["--offset"],
+                                       prefix=args["<prefix>"]))
         except markovstate.MarkovStateError as e:
             print(e.value)
 
     @arg_wrapper("paragraphs",
-                 "<len> [--seed=<seed>] [--prob=<prob>] [--offset=<offset>]",
+                 "<len> [--seed=<seed>] [--prob=<prob>] [--offset=<offset>] [--] [<prefix>...]",
                  {"<len>": (int,),
                   "--seed": (int, None),
                   "--prob": (float, 0),
-                  "--offset": (int, 0)})
+                  "--offset": (int, 0),
+                  "<prefix>": (tuple, ('\n\n',))})
     def do_paragraphs(self, args):
         """Generate paragraphs of output. See 'help generators'."""
 
@@ -84,16 +89,17 @@ give, drop that many tokens from the start of the output.
             print(self.markov.generate(args["<len>"], args["--seed"],
                                        args["--prob"], args["--offset"],
                                        endchunkf=lambda t: t == '\n\n',
-                                       kill=1, prefix=('\n\n',)))
+                                       kill=1, prefix=args["<prefix>"]))
         except markovstate.MarkovStateError as e:
             print(e.value)
 
     @arg_wrapper("sentences",
-                 "<len> [--seed=<seed>] [--prob=<prob>] [--offset=<offset>]",
+                 "<len> [--seed=<seed>] [--prob=<prob>] [--offset=<offset>] [--] [<prefix>...]",
                  {"<len>": (int,),
                   "--seed": (int, None),
                   "--prob": (float, 0),
-                  "--offset": (int, 0)})
+                  "--offset": (int, 0),
+                  "<prefix>": (tuple, ())})
     def do_sentences(self, args):
         """Generate sentences of output. See 'help generators'."""
 
@@ -102,7 +108,8 @@ give, drop that many tokens from the start of the output.
             print(self.markov.generate(args["<len>"], args["--seed"],
                                        args["--prob"], args["--offset"],
                                        startf=sentence_token,
-                                       endchunkf=sentence_token))
+                                       endchunkf=sentence_token,
+                                       prefix=args["<prefix>"]))
         except markovstate.MarkovStateError as e:
             print(e.value)
 
