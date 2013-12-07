@@ -9,6 +9,7 @@ topic`.
 Dependencies
 ------------
 
+ - python3
  - docopt
 
 Getting Started
@@ -24,7 +25,7 @@ Getting Started
 2. Fire up the program
 
     ````
-    python /path/to/repo
+    python3 /path/to/repo
     ````
 
 3. Generate text
