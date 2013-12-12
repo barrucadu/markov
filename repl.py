@@ -34,15 +34,16 @@ def arg_wrapper(f, cmd, argstr="", types={}):
     return wrapper
 
 
-class Repl(cmd.Cmd):
+class Repl(object,cmd.Cmd):
     """REPL for Markov interaction. This is way overkill, yay!
     """
 
     def __init__(self):
         """Initialise a new REPL.
         """
-
-        super().__init__()
+        self.completekey = False
+        self.cmdqueue = []
+        super(Repl, self).__init__()
         self.markov = markovstate.MarkovState()
 
     def help_generators(self):
@@ -144,11 +145,12 @@ than a separate token.
                  for path in glob.glob(os.path.expanduser(ps))]
 
         def charinput(paths):
-            with fileinput.input(paths) as fi:
-                for line in fi:
-                    for char in line:
-                        yield char
-
+            fi = fileinput.input(paths)
+            for line in fi:
+                for char in line:
+                    yield char
+            fi.close()
+        
         self.markov.train(args["<n>"],
                           charinput(paths),
                           noparagraphs=args["--noparagraphs"])

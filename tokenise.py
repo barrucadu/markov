@@ -28,7 +28,7 @@ class Tokeniser:
             # after this point.
             try:
                 next_char = next(self.stream)
-            except:
+            except Exception:
                 next_char = ''
                 self.halt = True
                 if not self.buffer:
@@ -70,3 +70,6 @@ class Tokeniser:
 
         # If we're here, we got nothing but EOF.
         raise StopIteration
+
+    def next(self):
+        return self.__next__()

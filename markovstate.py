@@ -77,7 +77,6 @@ class MarkovState:
     def train(self, n, stream, noparagraphs=False):
         """Train a new markov chain, overwriting the existing one.
         """
-
         training_data = tokenise.Tokeniser(stream=stream,
                                            noparagraphs=noparagraphs)
 
