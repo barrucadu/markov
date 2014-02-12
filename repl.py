@@ -48,22 +48,23 @@ class Repl(cmd.Cmd):
     def help_generators(self):
         print("""Generate a sequence of output:
 
-generator <len> [--seed=<seed>] [--prob=<prob>] [--offset=<offset>] [--] [<prefix>...]
+generator <len> [--seed=<seed>] [--prob=<prob>] [--offset=<offset>] [--cln=<cln>] [--] [<prefix>...]
 
 <len> is the length of the sequence; <seed> is the optional random
 seed. If no seed is given, the current system time is used; and <prob>
 is the probability of random token choice. The default value for <prob>
 is 0. If an offset is give, drop that many tokens from the start of the
-output. The optional prefix is used to see the generator with tokens. A
-prefix of length longer than the generator's n will be truncated.
-""")
+output. <cln> is the <n> value to use after a clause ends, the default
+is <n>. The optional prefix is used to see the generator with tokens. A
+prefix of length longer than the generator's n will be truncated.  """)
 
     @arg_wrapper("tokens",
-                 "<len> [--seed=<seed>] [--prob=<prob>] [--offset=<offset>] [--] [<prefix>...]",
+                 "<len> [--seed=<seed>] [--prob=<prob>] [--offset=<offset>] [--cln=<cln>] [--] [<prefix>...]",
                  {"<len>": (int,),
                   "--seed": (int, None),
                   "--prob": (float, 0),
                   "--offset": (int, 0),
+                  "--cln": (int, None),
                   "<prefix>": (tuple, ())})
     def do_tokens(self, args):
         """Generate tokens of output. See 'help generators'."""
@@ -71,16 +72,18 @@ prefix of length longer than the generator's n will be truncated.
         try:
             print(self.markov.generate(args["<len>"], args["--seed"],
                                        args["--prob"], args["--offset"],
+                                       args["--cln"],
                                        prefix=args["<prefix>"]))
         except markovstate.MarkovStateError as e:
             print(e.value)
 
     @arg_wrapper("paragraphs",
-                 "<len> [--seed=<seed>] [--prob=<prob>] [--offset=<offset>] [--] [<prefix>...]",
+                 "<len> [--seed=<seed>] [--prob=<prob>] [--offset=<offset>] [--cln=<cln>] [--] [<prefix>...]",
                  {"<len>": (int,),
                   "--seed": (int, None),
                   "--prob": (float, 0),
                   "--offset": (int, 0),
+                  "--cln": (int, None),
                   "<prefix>": (tuple, ('\n\n',))})
     def do_paragraphs(self, args):
         """Generate paragraphs of output. See 'help generators'."""
@@ -94,11 +97,12 @@ prefix of length longer than the generator's n will be truncated.
             print(e.value)
 
     @arg_wrapper("sentences",
-                 "<len> [--seed=<seed>] [--prob=<prob>] [--offset=<offset>] [--] [<prefix>...]",
+                 "<len> [--seed=<seed>] [--prob=<prob>] [--offset=<offset>] [--cln=<cln>] [--] [<prefix>...]",
                  {"<len>": (int,),
                   "--seed": (int, None),
                   "--prob": (float, 0),
                   "--offset": (int, 0),
+                  "--cln": (int, None),
                   "<prefix>": (tuple, ())})
     def do_sentences(self, args):
         """Generate sentences of output. See 'help generators'."""

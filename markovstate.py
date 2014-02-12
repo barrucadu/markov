@@ -18,7 +18,7 @@ class MarkovState:
         self.markov = None
         self.generator = None
 
-    def generate(self, chunks, seed=None, prob=0, offset=0,
+    def generate(self, chunks, seed=None, prob=0, offset=0, cln=None,
                  startf=lambda t: True, endchunkf=lambda t: True,
                  kill=0, prefix=()):
         """Generate some output, starting anew. Then save the state of the
@@ -28,6 +28,7 @@ class MarkovState:
            :param seed: The random seed. If not given, use system time.
            :param prob: The probability of random token substitution.
            :param offset: The number of tokens to discard from the start.
+           :param cln: The n value to use after the end of a clause.
            :param startf: Only start outputting after a token for thich this is
                           True is produced.
            :param endchunkf: End a chunk when a token for which this is True
@@ -48,7 +49,7 @@ class MarkovState:
             print("Warning: truncating prefix")
             prefix = prefix[self.markov.n - 1:]
 
-        self.markov.reset(seed, prob, prefix)
+        self.markov.reset(seed, prob, prefix, cln)
 
         itertools.dropwhile(lambda t: not startf(t), self.markov)
         next(itertools.islice(self.markov, offset, offset), None)

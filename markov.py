@@ -5,11 +5,17 @@ import sys
 
 
 class Markov:
+    CLAUSE_ENDS = [',', '.', ';', ':']
+
     def __init__(self, n=3):
         self.n = n
         self.p = 0
         self.seed = None
         self.data = {}
+        self.cln = n
+
+    def set_cln(self, cln):
+        self.cln = cln if cln is not None and cln <= self.n else self.n
 
     def train(self, training_data):
         prev = ()
@@ -51,10 +57,11 @@ class Markov:
             print("Could not dump to file.")
             return False
 
-    def reset(self, seed, prob, prev):
+    def reset(self, seed, prob, prev, cln):
         self.seed = seed
         self.p = prob
         self.prev = prev
+        self.set_cln(cln)
         random.seed(seed)
 
     def __iter__(self):
@@ -73,6 +80,9 @@ class Markov:
         self.prev += (next,)
         if len(self.prev) > self.n:
             self.prev = self.prev[1:]
+
+        if next[-1] in self.CLAUSE_ENDS:
+            self.prev = self.prev[-self.cln:]
 
         return next
 
