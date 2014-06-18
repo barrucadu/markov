@@ -1,5 +1,4 @@
 import time
-import itertools
 
 import tokenise
 import markov
@@ -50,9 +49,11 @@ class MarkovState:
             prefix = prefix[self.markov.n - 1:]
 
         self.markov.reset(seed, prob, prefix, cln)
-
-        itertools.dropwhile(lambda t: not startf(t), self.markov)
-        next(itertools.islice(self.markov, offset, offset), None)
+        
+        for i in range(offset):
+            next(self.markov)
+        while not startf(next(self.markov)):
+            pass
 
         def gen(n):
             out = []
