@@ -15,10 +15,9 @@ Dependencies
 Getting Started
 ---------------
 
-1. Download the KingJamesProgramming corpus:
+1. Download the KingJamesProgramming corpus from this repo:
 
     ````
-    wget http://misc.barrucadu.co.uk/pub/KingJamesProgramming.tar.xz
     tar xvf KingJamesProgramming.tar.xz
     ````
 
