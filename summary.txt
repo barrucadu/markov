@@ -81,3 +81,19 @@ Markov: stores and structures the data
 		generate a random idx up to total,
 		then index through the choices.items as (token, freq),
 		and either return token or subtract freq from idx
+
+
+Adding in anti-loop condition: the end-of-chunk check is in a different place
+from the state, which makes my preferred solution of 'check if the state is
+saturated and close out regardless of endchunkf check' difficult. 
+'Saturated': record how many times a given token has been picked from a given
+state in the course of the current chunk. If it is as many times as that token
+appears in the appropriate tokendict, do not pick it again. If every token meets
+this criterion, end immediately.
+Coarser-grained solution: On a per-chunk basis, track the number of visits to
+each state; if this ever exceeds the number of occurences in the training set,
+assume a loop has been found and end the chunk.
+This has some false positives, which could be a problem for small training sets.
+For large sets it has little issues, and guarantees a finite bound (size of the
+entire training set) on the longest output generated, and a corresponding time
+bound.
