@@ -60,8 +60,9 @@ class MarkovState:
             while n > 0:
                 tok = next(self.markov)
                 out.append(tok)
-                if endchunkf(tok):
+                if endchunkf(tok) or self.markov.lastStateSaturated():
                     n -= 1
+                    self.markov.cleanRecentData()
             return(' '.join(out if not kill else out[:-kill]))
 
         self.generator = gen

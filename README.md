@@ -1,6 +1,10 @@
 README
 ======
 
+Overview
+-----------
+
+
 The program presents a REPL, from which you can generate text in a
 number of different ways, a list of commands can be produced by typing
 `help`, and help for specific topics can be found by typing `help
@@ -34,13 +38,14 @@ Getting Started
     tokens 350
     ````
 
-Warning: Termination
+Warning: Repetition
 --------------------
 
-The `paragraphs` and `sentences` generators may not terminate. Because
-they generate blocks of text at a time, and a block only ends when a
-specific token (such as a paragraph break) occurs, if the generator
-gets stuck in a loop, the token may never come up.
-
-One way to resolve this would be to have a loop detector, but I
-haven't got around to doing this yet.
+To avoid infinite loops, the `paragraphs` and `sentences` generators may end 
+abruptly. Because they generate blocks of text at a time, and a block would only 
+end when a specific token (such as a paragraph break) occurs, the generators are
+programmed to end the chunk immediately if they find themselves generating a
+token from the same state repeatedly (with the threshold set at the number of
+occurences of that state in the training corpus). This can cause issues with
+small training sets or, if the training set has many rare words, with a high 
+chance of choosing a random token. 
