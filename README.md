@@ -1,11 +1,6 @@
 README
 ======
 
-Fork Properties
-------------
-Working on adding a termination possibility detector so that inescapable loops
-will be avoided.
-
 Overview
 -----------
 
