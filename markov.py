@@ -12,6 +12,7 @@ class Markov:
         self.p = 0
         self.seed = None
         self.data = {}
+        self.recentData = {}
         self.cln = n
 
     def set_cln(self, cln):
@@ -62,6 +63,7 @@ class Markov:
         self.p = prob
         self.prev = prev
         self.set_cln(cln)
+        self.cleanRecentData()
         random.seed(seed)
 
     def __iter__(self):
@@ -69,13 +71,13 @@ class Markov:
 
     def __next__(self):
         if self.prev == () or random.random() < self.p:
-            next = self._choose(self.data[()])
+            next = self._selectToken(())
         else:
             try:
-                next = self._choose(self.data[self.prev])
+                next = self._selectToken(self.prev)
             except:
                 self.prev = ()
-                next = self._choose(self.data[self.prev])
+                next = self._selectToken(self.prev)
 
         self.prev += (next,)
         if len(self.prev) > self.n:
@@ -85,6 +87,22 @@ class Markov:
             self.prev = self.prev[-self.cln:]
 
         return next
+
+    def lastStateSaturated(self):
+        if self.prev not in self.recentData:
+            return False
+        return self.recentData[self.prev] > self.data[self.prev][0]
+
+    def cleanRecentData(self):
+        self.recentData = {}
+
+    def _selectToken(self, state=None):
+        if state is None:
+            state = self.prev
+        if not state in self.recentData:
+            self.recentData[state] = 0
+        self.recentData[state] += 1
+        return self._choose(self.data[state])
 
     def _choose(self, freqdict):
         total, choices = freqdict
