@@ -1,7 +1,7 @@
 import time
 
-import tokenise
-import markov
+from markov import tokenise
+from markov import markov
 
 
 class MarkovStateError(Exception):
