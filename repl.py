@@ -3,9 +3,9 @@ import shlex
 import docopt
 import os
 import glob
-import markovstate
 import fileinput
 import functools
+from markov import markovstate
 
 
 def decorator_with_arguments(wrapper):
