@@ -21,7 +21,7 @@ class Markov:
     def train(self, training_data):
         prev = ()
         for token in training_data:
-            token = sys.intern(token)
+            #token = sys.intern(token)
             for pprev in [prev[i:] for i in range(len(prev) + 1)]:
                 if not pprev in self.data:
                     self.data[pprev] = [0, {}]
@@ -87,6 +87,9 @@ class Markov:
             self.prev = self.prev[-self.cln:]
 
         return next
+        
+    def next(self):
+        return self.__next__()
 
     def lastStateSaturated(self):
         if self.prev not in self.recentData:
