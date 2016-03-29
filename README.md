@@ -10,28 +10,30 @@ number of different ways, a list of commands can be produced by typing
 `help`, and help for specific topics can be found by typing `help
 topic`.
 
-Dependencies
-------------
-
- - python3
- - docopt
-
 Getting Started
 ---------------
 
-1. Download the KingJamesProgramming corpus from this repo:
+1. Download the KingJamesProgramming corpus from this repo
 
     ````
     tar xvf KingJamesProgramming.tar.xz
     ````
 
-2. Fire up the program
+3. Set up the virtualenv
 
     ````
-    python3 /path/to/repo
+    virtualenv venv
+    source venv/bin/activate
+    pip install -r requirements.txt
     ````
 
-3. Generate text
+3. Fire up the program
+
+    ````
+    python3 -m markov
+    ````
+
+4. Generate text
 
     ````
     train 3 --noparagraphs /path/to/KingJamesProgramming/*
