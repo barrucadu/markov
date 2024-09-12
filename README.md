@@ -1,6 +1,8 @@
 README
 ======
 
+**For the post-2024 resurrection of KingJamesProgramming, see [barrucadu/king-james-programming](https://github.com/barrucadu/king-james-programming)**
+
 Overview
 -----------
 
